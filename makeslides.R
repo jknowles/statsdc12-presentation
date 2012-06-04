@@ -1,0 +1,2 @@
+# Makeslides
+system(pandoc)

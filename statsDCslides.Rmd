@@ -1,0 +1,32 @@
+Using R and Longitudinal Data System Records to Answer Policy Questions
+==========================================================================
+Jared Knowles
+--------------------------------------------
+
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring web pages (click the **MD** toolbar button for help on Markdown).
+
+When you click the **Knit HTML** button a web page will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r chunkname,results='markup'}
+studat<-read.csv('data/smalldata.csv')
+str(studat)
+```
+
+You can also embed plots, for example:
+
+```{r fig.width=7, fig.height=6}
+library(ggplot2)
+qplot(readSS,mathSS,data=studat,alpha=I(.2))+geom_smooth(aes(group=ell,color=factor(ell)))
+```
+
+Outline of the conditional inference tree structure. 
+```{r parttree}
+library(partykit)
+mypar<-ctree_control(testtype='Bonferroni',mincriterion=0.99)
+
+mytree<-ctree(mathSS~race+econ+ell+disab+sch_fay+dist_fay+attday+readSS,
+              data=subset(studat,grade==3))
+
+plot(mytree)
+```
