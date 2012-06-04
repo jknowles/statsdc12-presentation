@@ -1,0 +1,115 @@
+% Using R and Longitudinal Data System Records to Answer Policy Questions
+% Jared Knowles
+
+
+# Intro
+Read in Data
+
+
+
+```r
+studat <- read.csv("data/smalldata.csv")
+str(studat)
+```
+
+
+
+```
+## 'data.frame':	2700 obs. of  32 variables:
+##  $ X          : int  44 53 116 244 274 276 478 574 613 620 ...
+##  $ school     : int  1 1 1 1 1 1 1 1 1 1 ...
+##  $ stuid      : int  149995 13495 106495 45205 142705 14995 120205 103495 55705 28495 ...
+##  $ grade      : int  3 3 3 3 3 3 3 3 3 3 ...
+##  $ schid      : int  495 495 495 205 205 495 205 495 205 495 ...
+##  $ dist       : int  105 45 45 15 75 105 15 45 75 45 ...
+##  $ white      : int  0 0 0 0 0 0 0 0 0 0 ...
+##  $ black      : int  1 1 1 1 1 1 1 1 1 1 ...
+##  $ hisp       : int  0 0 0 0 0 0 0 0 0 0 ...
+##  $ indian     : int  0 0 0 0 0 0 0 0 0 0 ...
+##  $ asian      : int  0 0 0 0 0 0 0 0 0 0 ...
+##  $ econ       : int  0 1 1 1 1 1 1 1 1 0 ...
+##  $ female     : int  0 0 0 0 0 0 0 0 0 0 ...
+##  $ ell        : int  0 0 0 0 0 0 0 0 0 0 ...
+##  $ disab      : int  0 0 0 0 0 0 0 0 0 0 ...
+##  $ sch_fay    : int  0 0 0 0 0 0 0 0 0 0 ...
+##  $ dist_fay   : int  0 0 0 0 0 0 0 0 0 0 ...
+##  $ luck       : int  0 1 0 1 0 0 1 0 0 0 ...
+##  $ ability    : num  87.9 97.8 104.5 111.7 81.9 ...
+##  $ measerr    : num  11.13 6.82 -7.86 -17.57 52.98 ...
+##  $ teachq     : num  39.0902 0.0985 39.5389 24.1161 56.6806 ...
+##  $ year       : int  2000 2000 2000 2000 2000 2000 2000 2000 2000 2000 ...
+##  $ attday     : int  180 180 160 168 156 157 169 180 170 152 ...
+##  $ schoolscore: num  29.2 56 56 56 56 ...
+##  $ district   : int  3 3 3 3 3 3 3 3 3 3 ...
+##  $ schoolhigh : int  0 0 0 0 0 0 0 0 0 0 ...
+##  $ schoolavg  : int  1 1 1 1 1 1 1 1 1 1 ...
+##  $ schoollow  : int  0 0 0 0 0 0 0 0 0 0 ...
+##  $ readSS     : num  357 264 370 347 373 ...
+##  $ mathSS     : num  387 303 365 344 441 ...
+##  $ proflvl    : Factor w/ 4 levels "advanced","basic",..: 2 3 2 2 2 4 4 4 3 2 ...
+##  $ race       : Factor w/ 5 levels "A","B","H","I",..: 2 2 2 2 2 2 2 2 2 2 ...
+```
+
+
+
+
+# Scalable graphics?
+
+You can also embed plots, for example:
+
+
+
+```r
+library(ggplot2)
+qplot(readSS, mathSS, data = studat, alpha = I(0.2)) + geom_smooth(aes(group = ell, 
+    color = factor(ell)))
+```
+
+
+
+```
+## geom_smooth: method="auto" and size of largest group is >=1000, so using gam with formula: y ~ s(x, bs = "cs"). Use 'method = x' to change the smoothing method.
+```
+
+![plot of chunk unnamed-chunk-1](figure/unnamed-chunk-1.svg) 
+
+
+# Inference Trees
+
+Outline of the conditional inference tree structure. 
+
+
+```r
+library(partykit)
+```
+
+
+
+```
+## Loading required package: grid
+```
+
+
+
+```r
+mypar <- ctree_control(testtype = "Bonferroni", mincriterion = 0.99)
+
+mytree <- ctree(mathSS ~ race + econ + ell + disab + sch_fay + dist_fay + 
+    attday + readSS, data = subset(studat, grade == 3))
+```
+
+
+
+```
+## Loading required package: Formula
+```
+
+
+
+```r
+
+plot(mytree)
+```
+
+![plot of chunk parttree](figure/parttree.svg) 
+

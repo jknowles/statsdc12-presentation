@@ -1,0 +1,33 @@
+% Using R and Longitudinal Data System Records to Answer Policy Questions
+% Jared Knowles
+
+
+# Intro
+Read in Data
+
+```{r chunkname,results='markup'}
+studat<-read.csv('data/smalldata.csv')
+str(studat)
+```
+
+# Scalable graphics?
+
+You can also embed plots, for example:
+
+```{r fig.width=7, fig.height=6,dev='svg'}
+library(ggplot2)
+qplot(readSS,mathSS,data=studat,alpha=I(.2))+geom_smooth(aes(group=ell,color=factor(ell)))
+```
+
+# Inference Trees
+
+Outline of the conditional inference tree structure. 
+```{r parttree,dev='svg'}
+library(partykit)
+mypar<-ctree_control(testtype='Bonferroni',mincriterion=0.99)
+
+mytree<-ctree(mathSS~race+econ+ell+disab+sch_fay+dist_fay+attday+readSS,
+              data=subset(studat,grade==3))
+
+plot(mytree)
+```

@@ -1,3 +1,5 @@
+figure
+*.Rhistory
 *.aux
 *.bbl
 *.blg
@@ -25,3 +27,4 @@
 *.maf
 *.mtc
 *.mtc0
+.Rproj.user
