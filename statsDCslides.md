@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 Using R and Longitudinal Data System Records to Answer Policy Questions
 ==========================================================================
 Jared Knowles
@@ -7,6 +8,14 @@ Jared Knowles
 This is an R Markdown document. Markdown is a simple formatting syntax for authoring web pages (click the **MD** toolbar button for help on Markdown).
 
 When you click the **Knit HTML** button a web page will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+=======
+% Using R and Longitudinal Data System Records to Answer Policy Questions
+% Jared Knowles
+
+
+# Intro
+Read in Data
+>>>>>>> 3c469193de612572b061c69e24f1c270efc89d44
 
 
 
@@ -56,6 +65,11 @@ str(studat)
 
 
 
+<<<<<<< HEAD
+=======
+# Scalable graphics?
+
+>>>>>>> 3c469193de612572b061c69e24f1c270efc89d44
 You can also embed plots, for example:
 
 
@@ -72,6 +86,50 @@ qplot(readSS, mathSS, data = studat, alpha = I(0.2)) + geom_smooth(aes(group = e
 ## geom_smooth: method="auto" and size of largest group is >=1000, so using gam with formula: y ~ s(x, bs = "cs"). Use 'method = x' to change the smoothing method.
 ```
 
+<<<<<<< HEAD
 ![plot of chunk unnamed-chunk-1](figure/unnamed-chunk-1.png) 
 
+=======
+![plot of chunk unnamed-chunk-1](figure/unnamed-chunk-1.svg) 
+
+
+# Inference Trees
+
+Outline of the conditional inference tree structure. 
+
+
+```r
+library(partykit)
+```
+
+
+
+```
+## Loading required package: grid
+```
+
+
+
+```r
+mypar <- ctree_control(testtype = "Bonferroni", mincriterion = 0.99)
+
+mytree <- ctree(mathSS ~ race + econ + ell + disab + sch_fay + dist_fay + 
+    attday + readSS, data = subset(studat, grade == 3))
+```
+
+
+
+```
+## Loading required package: Formula
+```
+
+
+
+```r
+
+plot(mytree)
+```
+
+![plot of chunk parttree](figure/parttree.svg) 
+>>>>>>> 3c469193de612572b061c69e24f1c270efc89d44
 

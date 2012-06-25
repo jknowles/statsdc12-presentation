@@ -1,27 +1,27 @@
-Using R and Longitudinal Data System Records to Answer Policy Questions
-==========================================================================
-Jared Knowles
---------------------------------------------
+% Using R and Longitudinal Data System Records to Answer Policy Questions
+% Jared Knowles
 
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring web pages (click the **MD** toolbar button for help on Markdown).
+# Intro
+Read in Data
 
-When you click the **Knit HTML** button a web page will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r chunkname,results='markup'}
+```{r readdata,results='markup',cache=TRUE}
 studat<-read.csv('data/smalldata.csv')
 str(studat)
+source('data/simulate_data.R')
 ```
 
 You can also embed plots, for example:
 
-```{r fig.width=7, fig.height=6}
+```{r fig.width=7, fig.height=6,dev='svg'}
 library(ggplot2)
 qplot(readSS,mathSS,data=studat,alpha=I(.2))+geom_smooth(aes(group=ell,color=factor(ell)))
 ```
 
+
+# Inference Trees
 Outline of the conditional inference tree structure. 
-```{r parttree}
+```{r parttree,dev='svg'}
 library(partykit)
 mypar<-ctree_control(testtype='Bonferroni',mincriterion=0.99)
 
@@ -30,3 +30,40 @@ mytree<-ctree(mathSS~race+econ+ell+disab+sch_fay+dist_fay+attday+readSS,
 
 plot(mytree)
 ```
+
+```{r parttree2}
+library(caret)
+library(gbm)
+require(pROC)
+testset<-sample(200000,student_long$stuid)
+student_long$year<-as.numeric(student_long$year)
+student_long$proflvl<-as.numeric(student_long$proflvl)
+student_long$case<-0
+student_long$case[student_long$stuid %in% testset]<-1
+training<-subset(student_long,case==0)
+testing<-subset(student_long,case==1)
+
+
+training<-training[,c(3,6:16,21,22,28,29,30)]
+
+
+trainX<-training[,1:15]
+
+ctrl <- trainControl(method = "repeatedcv", repeats = 5,
+                     summaryFunction = defaultSummary)
+
+svmTune<-train(x=trainX,
+               y=training$mathSS,
+               method="svmLinear",
+               tuneLength=9,
+               metric="RMSE",
+               trControl=ctrl)
+
+a<-preProcess(training,method=c("center","scale"))
+scaledTrain<-predict(a,training)
+
+names(student_long)
+
+
+```
+
