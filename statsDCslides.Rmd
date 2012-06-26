@@ -1,6 +1,20 @@
 % Using R and Longitudinal Data System Records to Answer Policy Questions
 % Jared Knowles
 
+# Overview
+- Why R?
+- Examples of R Analyses?
+- Share R code across states
+- Develop joint methods
+- Produce reports
+
+# Why R?
+- R is free
+- R is open source
+- R is best in class and state of the art
+- R is free
+
+# 
 
 # Intro
 Read in Data
@@ -11,7 +25,7 @@ str(studat)
 source('data/simulate_data.R')
 ```
 
-You can also embed plots, for example:
+# You can also embed plots, for example:
 
 ```{r fig.width=7, fig.height=6,dev='svg'}
 library(ggplot2)
@@ -63,7 +77,5 @@ a<-preProcess(training,method=c("center","scale"))
 scaledTrain<-predict(a,training)
 
 names(student_long)
-
-
 ```
 
