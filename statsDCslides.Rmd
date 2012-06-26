@@ -1,51 +1,176 @@
 % Using R and Longitudinal Data System Records to Answer Policy Questions
 % Jared Knowles
 
+
 # Overview
 - Why R?
 - Examples of R Analyses?
 - Share R code across states
 - Develop joint methods
 - Produce reports
+```{r setup,results='hide',echo=FALSE}
+opts_chunk$set(warning=FALSE,error=FALSE,message=FALSE,size='footnotesize',dev='svg')
+```
 
 # Why R?
 - R is free
 - R is open source
-- R is best in class and state of the art
+- R is **best in class** and state of the art
 - R is free
 
-# 
+# R
+<p align="center"><img src="http://dl.dropbox.com/u/1811289/workspacescreen.png" height="700" width="800"></p>
 
-# Intro
+# Google Scholar Hits
+R has recently passed Stata on Google Scholar hits and it is catching up to the two major players SPSS and SAS
+
+<p align="center"><img src="http://dl.dropbox.com/u/1811289/googlescholar.png" height="600" width="800"></p>
+
+# R Has an Active Web Presence
+R is linked to from more and more sites 
+
+<p align="center"><img src="http://dl.dropbox.com/u/1811289/sitelinks.png" height="650" width="800"></p>
+
+# R Extensions
+These links come from the explosion of add-on packages to R
+
+<p align="center"><img src="http://dl.dropbox.com/u/1811289/addons.png" height="600" width="800"></p>
+
+# R Has an Active Community 
+Usage of the R listserv for help has really exploded recently
+
+<p align="center"><img src="http://dl.dropbox.com/u/1811289/rlistserv.png" height="600" width="800"></p>
+
+
+# R Examples
 Read in Data
 
 ```{r readdata,results='markup',cache=TRUE}
 studat<-read.csv('data/smalldata.csv')
-str(studat)
+str(studat[5:18,])
 source('data/simulate_data.R')
 ```
 
-# You can also embed plots, for example:
+# Simple Diagnostics
 
-```{r fig.width=7, fig.height=6,dev='svg'}
+```{r fig.width=10, fig.height=7,out.width='700px',out.height='500px'}
+source('ggplot2themes.R')
 library(ggplot2)
-qplot(readSS,mathSS,data=studat,alpha=I(.2))+geom_smooth(aes(group=ell,color=factor(ell)))
+qplot(readSS,mathSS,data=studat,alpha=I(.2))+geom_smooth(aes(group=ell,color=factor(ell)))+theme_dpi()
 ```
+
+# Advanced Diagnostics
+
+```{r fig.width=8, fig.height=6,dev='svg'}
+samp<-sample(studat$stuid,24)
+plotsub<-subset(studat,stuid%in%samp)
+qplot(grade,readSS,data=plotsub)+facet_wrap(~stuid,nrow=4,ncol=6)+theme_dpi()+geom_line()+geom_smooth(method='lm',se=FALSE)
+```
+
+# More Advanced 
+<p align="center"><img src="http://dl.dropbox.com/u/1811289/TESTstuplot.gif" height="800" width="900"></p>
+
+# What we do?
+- We fit statistical models to all the students in Wisconsin modeling their future test score as best as possible through each strategy described above
+- We also include an indicator of whether the student was eligible for BLBC instruction or not
+- We compare to see if the average student receiving BLBC did better than the average student receiving other ESL services, all else equal
+- We report the range of uncertainty around this difference between student groups and compare them to see if any meaningful differences emerge
+- Due to our large sample size we expect our results to be biased in favor of finding statistically significant results, so we also examine the magnitude of findings to see if they are **substantively significant**; i.e. is the difference big enough to matter in the lives of students?
+
+
+# Evaluations of Policy 
+- Results are presented in effect sizes, or standard deviation units of change in test scores.
+- **0.1** is small, 0.2 to 0.4 is reasonable and is about a *year* of education in most cases. Bigger than 0.4 is huge.
+```{r modelspec, echo=FALSE,fig.width=9.5,fig.height=6}
+#Full Sample
+modtype<-c('VAM','VAM','VAM','SFE','SFE','SFE','VAMSFE','VAMSFE','VAMSFE')
+dv<-c('ELLss','RKCEss','MKCEss','ELLss','RKCEss','MKCEss','ELLss','RKCEss','MKCEss')
+coef<-c(-.072,-.083,-.037,.005,-.018,.015,-.066,-.134,.020)
+se<-c(.007,.012,.012,.011,.018,.018,.022,.059,.056)
+blbc<-cbind(modtype,dv,coef,se)
+blbc<-as.data.frame(blbc)
+blbc$se<-as.character(blbc$se)
+blbc$coef<-as.character(blbc$coef)
+blbc$se<-as.numeric(blbc$se)
+blbc$coef<-as.numeric(blbc$coef)
+blbc$modtitle<-0
+#blbc$modtitle[blbc$modtype=='SFE']<-"Student FE"
+#blbc$modtitle[blbc$modtype=='VAM']<-"Value-added"
+#blbc$modtitle[blbc$modtype=='VAMSFE']<-"VA & Student FE"
+#blbc$modtitle<-factor(blbc$modtitle,levels=c('Student FE','Value-added','VA & Student FE'))
+
+blbc$dv<-as.character(blbc$dv)
+blbc$dv[blbc$dv=='ELLss']<-'English Language Proficiency'
+blbc$dv[blbc$dv=='MKCEss']<-'Math achievement'
+blbc$dv[blbc$dv=='RKCEss']<-'Reading achievement'
+coefplot<-ggplot(subset(blbc),aes(modtype,coef,ymin=coef-(1.96*se),ymax=coef+(1.96*se)))
+coefplot<-coefplot+geom_errorbar(width=.5,size=I(1))+geom_point(size=I(3))+facet_wrap(~dv,nrow=1)+ylim(c(-.3,.2))+xlab('Specification \n All Models Computed on Full Sample')+ylab('Effect Size in Standard Deviation Units')
+coefplot<-coefplot+geom_hline(yintercept=0,colour='red',size=1)+opts(title='Outcome',plot.title=theme_text(size=20),axis.title.x=theme_text(size=16),axis.title.y=theme_text(size=16,angle=90),panel.grid.minor=theme_blank())
+coefplot<-coefplot+opts(panel.background=theme_rect(colour='black',fill='grey90'),panel.grid.minor = theme_blank())
+coefplot+theme_dpi()
+```
+- The bars represent the 95% confidence interval around the estimate. The VAM model is consistently statistically significant, not overlapping 0, and negative.
+- The length of the bars represent the uncertainty about the estimate.
+- But the mean effect size is quite small, less than 0.1 standard deviations in most cases. 
+- This represents a year-to-year change in a student's score between BLBC and non-BLBC instruction.
+
+# Results
+- Language is different. Wisconsin has a large sample of both Hmong and Spanish speakers and they have different results when analyzed separately
+```{r modelbracketlang,echo=FALSE,fig.width=9.5,fig.height=6}
+modtype3<-c('VAM','SFE','VAM','SFE','VAM','SFE','VAM','SFE','VAM','SFE','VAM','SFE')
+dv3<-c('ELLss','ELLss','RKCEss','RKCEss','MKCEss','MKCEss','ELLss','ELLss','RKCEss','RKCEss','MKCEss','MKCEss')
+lang<-c('span','span','span','span','span','span','hmong','hmong','hmong','hmong','hmong','hmong')
+coef3<-c(-.032,.015,-.120,-.038,.034,.022,.060,-.029,-.189,.014,-.2,-.129)
+se3<-c(.015,.016,.041,.026,.042,.026,.030,.027,.092,.055,.096,.056)
+
+blbc3<-cbind(modtype3,dv3,coef3,se3,lang)
+blbc3<-as.data.frame(blbc3)
+blbc3$se3<-as.character(blbc3$se3)
+blbc3$coef3<-as.character(blbc3$coef3)
+blbc3$se3<-as.numeric(blbc3$se3)
+blbc3$coef3<-as.numeric(blbc3$coef3)
+
+
+coefplot1<-ggplot(blbc3,aes(dv3,coef3,ymin=coef3-1.96*se3,ymax=coef3+1.96*se3,linetype=modtype3))
+coefplot1<-coefplot1+geom_errorbar(width=.5,size=1)+geom_point(size=I(3))+
+  facet_wrap(~lang,nrow=1)+xlab('Outcome Variable')+ylab('Effect Size in Standard Deviation Units')
+coefplot1<-coefplot1+geom_hline(yintercept=0,colour='red',size=1)+opts(title='Bracketing of BLBC Across Language Groups',plot.title=theme_text(size=20),axis.title.x=theme_text(size=16),axis.title.y=theme_text(size=16,angle=90),panel.grid.minor=theme_blank())
+coefplot1<-coefplot1+opts(panel.background=theme_rect(colour='black',fill='grey90'),panel.grid.minor = theme_blank())
+coefplot1+theme_dpi()+scale_linetype_discrete(name="Model \n Specification")
+
+```
+- BLBC has no effect for Spanish speakers on math, but a large negative effect for Hmong speakers
+- BLBC may be slightly negative for reading among SPanish speakers, but not for Hmong speakers
+- BLBC may be slightly positive for English proficiency for Hmong speakers and not for Spanish speakers
+- More precision is needed
+
+# Conclusions and Next Steps
+**Conclusions**
+
+- In Wisconsin BLBC does not have the **negative** effects found in recent research on California, though a slight negative effect may exist in some cases
+- Unlike other states where BLBC has been studied, Wisconsin has substantially different results between language groups on mathematics and possibly on English proficiency achievement
+- There is still a lot of imprecision in the estimates used here and more precision would be helpful, but effects are not substantively large in terms of relative student performance, even in the upper and lower bounds
+
+**Next Steps**
+
+- Get more data over more years and use a more precise estimation technique to reduce uncertainty about effects
+- Explore the *variation* across BLBC programs in addition to the mean effect
+- Learn more about the non-cognitive non-academic outcomes for BLBC in order to understand the costs and benefits of BLBC programs more fully
+- Estimate a "treatement-on-the-treated"" parameter to more directly compare to prior research
+- Survey teachers and merge teacher/program practice data with student outcomes to begin exploring the effective components of BLBC and ESL programs
 
 
 # Inference Trees
 Outline of the conditional inference tree structure. 
-```{r parttree,dev='svg'}
+```{r parttree,dev='svg',fig.width=10.25,fig.height=7.5}
 library(partykit)
 mypar<-ctree_control(testtype='Bonferroni',mincriterion=0.99)
-
 mytree<-ctree(mathSS~race+econ+ell+disab+sch_fay+dist_fay+attday+readSS,
               data=subset(studat,grade==3))
-
 plot(mytree)
 ```
 
-```{r parttree2}
+```{r parttree2, eval=FALSE,echo=FALSE}
 library(caret)
 library(gbm)
 require(pROC)
