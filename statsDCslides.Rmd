@@ -204,6 +204,12 @@ scaledTrain<-predict(a,training)
 names(student_long)
 ```
 
+# Can Standardize and Share / Compare Results
+- Execute the same code on each other's data
+- Compare results
+- Compare methods of analysis and improve them
+- Build a professional community 
+
 # Code collaboration
 - There are a number of very common data tasks to help do policy research that can be shared 
   - Clean data
@@ -247,3 +253,6 @@ head(stuatt,4)
 - Should this student be flagged as inconsisent?
 - Should this student be coded as multi-racial?
 
+# Fix the data
+
+# 
