@@ -47,11 +47,9 @@ Read in Data
 
 
 ```r
-studat <- read.csv("data/smalldata.csv")
-str(studat[5:18, ])
+studat<-read.csv('data/smalldata.csv')
+str(studat[5:18,])
 ```
-
-
 
 ```
 ## 'data.frame':	14 obs. of  32 variables:
@@ -89,10 +87,8 @@ str(studat[5:18, ])
 ##  $ race       : Factor w/ 5 levels "A","B","H","I",..: 2 2 2 2 2 2 2 2 2 2 ...
 ```
 
-
-
 ```r
-source("data/simulate_data.R")
+# source('data/simulate_data.R')
 ```
 
 
@@ -103,13 +99,12 @@ source("data/simulate_data.R")
 
 
 ```r
-source("ggplot2themes.R")
+source('ggplot2themes.R')
 library(ggplot2)
-qplot(readSS, mathSS, data = studat, alpha = I(0.2)) + geom_smooth(aes(group = ell, 
-    color = factor(ell))) + theme_dpi()
+qplot(readSS,mathSS,data=studat,alpha=I(.2))+geom_smooth(aes(group=ell,color=factor(ell)))+theme_dpi()
 ```
 
-![plot of chunk unnamed-chunk-1](figure/unnamed-chunk-1.svg) 
+
 
 
 # Advanced Diagnostics
@@ -117,13 +112,12 @@ qplot(readSS, mathSS, data = studat, alpha = I(0.2)) + geom_smooth(aes(group = e
 
 
 ```r
-samp <- sample(studat$stuid, 24)
-plotsub <- subset(studat, stuid %in% samp)
-qplot(grade, readSS, data = plotsub) + facet_wrap(~stuid, nrow = 4, 
-    ncol = 6) + theme_dpi() + geom_line() + geom_smooth(method = "lm", se = FALSE)
+samp<-sample(studat$stuid,24)
+plotsub<-subset(studat,stuid%in%samp)
+qplot(grade,readSS,data=plotsub)+facet_wrap(~stuid,nrow=4,ncol=6)+theme_dpi()+geom_line()+geom_smooth(method='lm',se=FALSE)
 ```
 
-![plot of chunk unnamed-chunk-2](figure/unnamed-chunk-2.svg) 
+
 
 
 # More Advanced 
@@ -140,7 +134,7 @@ qplot(grade, readSS, data = plotsub) + facet_wrap(~stuid, nrow = 4,
 # Evaluations of Policy 
 - Results are presented in effect sizes, or standard deviation units of change in test scores.
 - **0.1** is small, 0.2 to 0.4 is reasonable and is about a *year* of education in most cases. Bigger than 0.4 is huge.
-![plot of chunk modelspec](figure/modelspec.svg) 
+
 
 - The bars represent the 95% confidence interval around the estimate. The VAM model is consistently statistically significant, not overlapping 0, and negative.
 - The length of the bars represent the uncertainty about the estimate.
@@ -149,7 +143,7 @@ qplot(grade, readSS, data = plotsub) + facet_wrap(~stuid, nrow = 4,
 
 # Results
 - Language is different. Wisconsin has a large sample of both Hmong and Spanish speakers and they have different results when analyzed separately
-![plot of chunk modelbracketlang](figure/modelbracketlang.svg) 
+
 
 - BLBC has no effect for Spanish speakers on math, but a large negative effect for Hmong speakers
 - BLBC may be slightly negative for reading among SPanish speakers, but not for Hmong speakers
@@ -178,9 +172,9 @@ Outline of the conditional inference tree structure.
 
 ```r
 library(partykit)
-mypar <- ctree_control(testtype = "Bonferroni", mincriterion = 0.99)
-mytree <- ctree(mathSS ~ race + econ + ell + disab + sch_fay + dist_fay + 
-    attday + readSS, data = subset(studat, grade == 3))
+mypar<-ctree_control(testtype='Bonferroni',mincriterion=0.99)
+mytree<-ctree(mathSS~race+econ+ell+disab+sch_fay+dist_fay+attday+readSS,
+              data=subset(studat,grade==3))
 plot(mytree)
 ```
 
@@ -190,3 +184,106 @@ plot(mytree)
 
 
 
+# Can Standardize and Share / Compare Results
+- Execute the same code on each other's data
+- Compare results
+- Compare methods of analysis and improve them
+- Build a professional community 
+
+# Code collaboration
+- There are a number of very common data tasks to help do policy research that can be shared 
+  - Clean data
+  - Combine datasets and match data
+  - Calculate basic statistics (duration, etc.)
+  - Flag abnormal values
+  - Create diagnostic reports (with graphics)
+
+# Some code sharing exists
+- DPI has begun working with the [Strategic Data Project](http://www.gse.harvard.edu/~pfpie/index.php/sdp/strategic-data-project-the-vision) at Harvard to prepare their toolkit using R
+  - Currently written in Stata
+- Goal is to package the toolkit into R functions that can be applied to any dataset that has the required elements
+- This work has begun with the creation of a few functions in R and some documentation
+- Can be found [online at GitHub](https://github.com/jknowles/SDP-Toolkit-for-R)
+<p align="center"><img src="data/sdp.gif" height="112" width="329"></p>
+
+# Can do more
+- Consider this example data:
+
+
+```
+##   sid school_year race_ethnicity
+## 1   1        2004              B
+## 2   1        2005              H
+## 3   1        2006              H
+## 4   1        2007              H
+## 5   2        2006              W
+## 6   2        2007              B
+```
+
+
+
+- Student 1 and Student 2 in this data have different races in different years
+- This doesn't happen often in most of our data systems, but it does happen, especially across different datasets
+- For research this can cause problems and requires different business rules
+
+# What business rules do we use?
+- Ad hoc and up to the researcher
+- Need standards
+- Need commonality
+- Need consistency
+- Need tools that make those things easy to do!
+
+# What to do?
+
+
+```r
+head(stuatt,4)
+```
+
+```
+##   sid school_year race_ethnicity
+## 1   1        2004              B
+## 2   1        2005              H
+## 3   1        2006              H
+## 4   1        2007              H
+```
+
+
+
+- Should this student be declared H, the modal race?
+- Should this student be declared B, the first occurring race?
+- Should this student be flagged as inconsisent?
+- Should this student be coded as multi-racial?
+
+# Fix the data
+
+
+```r
+stuatt$race2<-stuatt$race_ethnicity
+stuatt$race2[[1]]<-"H"
+head(stuatt,4)
+```
+
+```
+##   sid school_year race_ethnicity race2
+## 1   1        2004              B     H
+## 2   1        2005              H     H
+## 3   1        2006              H     H
+## 4   1        2007              H     H
+```
+
+
+
+- We can do the modal category easily in R
+
+# Do analytics on fixed data
+
+
+- R has best in class machine learning algorithms used to classify data and predict
+- R is the tool of choice for data science algorithms
+- Python is good too
+
+
+ 
+ 
+ 

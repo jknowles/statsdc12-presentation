@@ -48,7 +48,7 @@ Read in Data
 ```{r readdata,results='markup',cache=TRUE}
 studat<-read.csv('data/smalldata.csv')
 str(studat[5:18,])
-source('data/simulate_data.R')
+# source('data/simulate_data.R')
 ```
 
 # Simple Diagnostics
@@ -254,5 +254,48 @@ head(stuatt,4)
 - Should this student be coded as multi-racial?
 
 # Fix the data
+```{r}
+stuatt$race2<-stuatt$race_ethnicity
+stuatt$race2[[1]]<-"H"
+head(stuatt,4)
+```
+- We can do the modal category easily in R
 
-# 
+# Do analytics on fixed data
+```{r analytics,echo=FALSE,eval=FALSE,results='hide'}
+library(caret)
+library(gbm)
+require(pROC)
+testset<-sample(studat$stuid,500)
+studat$year<-as.numeric(studat$year)
+studat$proflvl<-as.numeric(studat$proflvl)
+studat$case<-0
+studat$case[studat$stuid %in% testset]<-1
+training<-subset(studat,case==0)
+testing<-subset(studat,case==1)
+
+
+training<-training[,c(3,6:16,21,22,28,29,30)]
+
+
+trainX<-training[,1:15]
+
+ctrl <- trainControl(method = "repeatedcv", repeats = 5,
+                     summaryFunction = defaultSummary)
+
+gbmTune<-train(x=trainX,
+               y=training$mathSS,
+               method="gbm",
+               tuneLength=9,
+               metric="RMSE",
+               trControl=ctrl)
+
+```
+- R has best in class machine learning algorithms used to classify data and predict
+- R is the tool of choice for data science algorithms
+- Python is good too
+
+
+ 
+ 
+ 
