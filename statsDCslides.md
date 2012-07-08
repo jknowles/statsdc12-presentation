@@ -47,8 +47,8 @@ Read in Data
 
 
 ```r
-studat<-read.csv('data/smalldata.csv')
-str(studat[5:18,])
+studat <- read.csv("data/smalldata.csv")
+str(studat[5:18, ])
 ```
 
 ```
@@ -88,7 +88,7 @@ str(studat[5:18,])
 ```
 
 ```r
-# source('data/simulate_data.R')
+source("data/simulate_data.R")
 ```
 
 
@@ -99,12 +99,13 @@ str(studat[5:18,])
 
 
 ```r
-source('ggplot2themes.R')
+source("ggplot2themes.R")
 library(ggplot2)
-qplot(readSS,mathSS,data=studat,alpha=I(.2))+geom_smooth(aes(group=ell,color=factor(ell)))+theme_dpi()
+qplot(readSS, mathSS, data = studat, alpha = I(0.2)) + geom_smooth(aes(group = ell, 
+    color = factor(ell))) + theme_dpi()
 ```
 
-
+![plot of chunk unnamed-chunk-1](figure/unnamed-chunk-1.svg) 
 
 
 # Advanced Diagnostics
@@ -112,12 +113,13 @@ qplot(readSS,mathSS,data=studat,alpha=I(.2))+geom_smooth(aes(group=ell,color=fac
 
 
 ```r
-samp<-sample(studat$stuid,24)
-plotsub<-subset(studat,stuid%in%samp)
-qplot(grade,readSS,data=plotsub)+facet_wrap(~stuid,nrow=4,ncol=6)+theme_dpi()+geom_line()+geom_smooth(method='lm',se=FALSE)
+samp <- sample(studat$stuid, 24)
+plotsub <- subset(studat, stuid %in% samp)
+qplot(grade, readSS, data = plotsub) + facet_wrap(~stuid, nrow = 4, 
+    ncol = 6) + theme_dpi() + geom_line() + geom_smooth(method = "lm", se = FALSE)
 ```
 
-
+![plot of chunk unnamed-chunk-2](figure/unnamed-chunk-2.svg) 
 
 
 # More Advanced 
@@ -134,7 +136,7 @@ qplot(grade,readSS,data=plotsub)+facet_wrap(~stuid,nrow=4,ncol=6)+theme_dpi()+ge
 # Evaluations of Policy 
 - Results are presented in effect sizes, or standard deviation units of change in test scores.
 - **0.1** is small, 0.2 to 0.4 is reasonable and is about a *year* of education in most cases. Bigger than 0.4 is huge.
-
+![plot of chunk modelspec](figure/modelspec.svg) 
 
 - The bars represent the 95% confidence interval around the estimate. The VAM model is consistently statistically significant, not overlapping 0, and negative.
 - The length of the bars represent the uncertainty about the estimate.
@@ -143,7 +145,7 @@ qplot(grade,readSS,data=plotsub)+facet_wrap(~stuid,nrow=4,ncol=6)+theme_dpi()+ge
 
 # Results
 - Language is different. Wisconsin has a large sample of both Hmong and Spanish speakers and they have different results when analyzed separately
-
+![plot of chunk modelbracketlang](figure/modelbracketlang.svg) 
 
 - BLBC has no effect for Spanish speakers on math, but a large negative effect for Hmong speakers
 - BLBC may be slightly negative for reading among SPanish speakers, but not for Hmong speakers
@@ -172,9 +174,9 @@ Outline of the conditional inference tree structure.
 
 ```r
 library(partykit)
-mypar<-ctree_control(testtype='Bonferroni',mincriterion=0.99)
-mytree<-ctree(mathSS~race+econ+ell+disab+sch_fay+dist_fay+attday+readSS,
-              data=subset(studat,grade==3))
+mypar <- ctree_control(testtype = "Bonferroni", mincriterion = 0.99)
+mytree <- ctree(mathSS ~ race + econ + ell + disab + sch_fay + dist_fay + 
+    attday + readSS, data = subset(studat, grade == 3))
 plot(mytree)
 ```
 
@@ -237,7 +239,7 @@ plot(mytree)
 
 
 ```r
-head(stuatt,4)
+head(stuatt, 4)
 ```
 
 ```
@@ -259,9 +261,9 @@ head(stuatt,4)
 
 
 ```r
-stuatt$race2<-stuatt$race_ethnicity
-stuatt$race2[[1]]<-"H"
-head(stuatt,4)
+stuatt$race2 <- stuatt$race_ethnicity
+stuatt$race2[[1]] <- "H"
+head(stuatt, 4)
 ```
 
 ```
@@ -279,11 +281,90 @@ head(stuatt,4)
 # Do analytics on fixed data
 
 
+```r
+library(caret)
+# Parallel on Windows
+library(snow)
+library(doSNOW)
+cl <- makeCluster(c("localhost", "localhost", "localhost", "localhost"), 
+    type = "SOCK")
+registerDoSNOW(cl)
+#
+library(gbm)
+require(pROC)
+student_long$year <- as.numeric(student_long$year)
+student_long$proflvl <- as.numeric(student_long$proflvl)
+testset <- sample(unique(student_long$stuid), 185000)
+student_long$case <- 0
+student_long$case[student_long$stuid %in% testset] <- 1
+training <- subset(student_long, case == 0)
+testing <- subset(student_long, case == 1)
+
+
+training <- training[, c(3, 6:16, 21, 22, 28, 29, 30)]
+
+trainX <- training[, 1:15]
+ctrl <- trainControl(method = "repeatedcv", number = 10, repeats = 3, 
+    summaryFunction = defaultSummary)
+grid <- expand.grid(.interaction.depth = seq(1, 7, by = 2), .n.trees = seq(100, 
+    1000, by = 50), .shrinkage = c(0.01, 0.1))
+gbmTune <- train(x = trainX, y = training$mathSS, method = "gbm", 
+    metric = "RMSE", trControl = ctrl, tuneGrid = grid, verbose = FALSE)
+gbmPred <- predict(gbmTune, testing[, names(trainX)])
+
+# svmTune<-train(x=trainX, y=training$mathSS, method='svmLinear',
+# tuneLength=3, metric='RMSE', trControl=ctrl)
+```
+
+
+
 - R has best in class machine learning algorithms used to classify data and predict
 - R is the tool of choice for data science algorithms
 - Python is good too
 
 
+# Plot
+
+
+```r
+qplot(testing$mathSS, gbmPred, geom = "hex", binwidth = c(10, 10)) + 
+    geom_smooth() + theme_dpi()
+```
+
+![plot of chunk modeldiag1](figure/modeldiag1.svg) 
+
+
+# Plot 2
+
+
+```r
+qplot(testing$mathSS, testing$mathSS - gbmPred, geom = "hex", binwidth = c(10, 
+    10)) + geom_smooth() + theme_dpi()
+```
+
+![plot of chunk modeldiag2](figure/modeldiag2.svg) 
+
+
+# Plot 3
+
+
+
+```r
+qplot(testing$mathSS - gbmPred, binwidth = 7) + theme_dpi() + xlim(c(-60, 
+    60))
+```
+
+![plot of chunk modeldiag3](figure/modeldiag3.svg) 
+
  
- 
- 
+# Plot 4
+
+
+
+```r
+plot(gbmTune)
+```
+
+![plot of chunk modeldiag4](figure/modeldiag4.svg) 
+
+

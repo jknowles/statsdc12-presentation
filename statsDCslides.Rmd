@@ -48,7 +48,7 @@ Read in Data
 ```{r readdata,results='markup',cache=TRUE}
 studat<-read.csv('data/smalldata.csv')
 str(studat[5:18,])
-# source('data/simulate_data.R')
+source('data/simulate_data.R')
 ```
 
 # Simple Diagnostics
@@ -262,33 +262,48 @@ head(stuatt,4)
 - We can do the modal category easily in R
 
 # Do analytics on fixed data
-```{r analytics,echo=FALSE,eval=FALSE,results='hide'}
+```{r analytics,cache=TRUE,eval=FALSE}
 library(caret)
+# Parallel on Windows
+library(snow)
+library(doSNOW)
+cl<-makeCluster(c("localhost","localhost","localhost","localhost"),type="SOCK")
+registerDoSNOW(cl)
+#
 library(gbm)
 require(pROC)
-testset<-sample(studat$stuid,500)
-studat$year<-as.numeric(studat$year)
-studat$proflvl<-as.numeric(studat$proflvl)
-studat$case<-0
-studat$case[studat$stuid %in% testset]<-1
-training<-subset(studat,case==0)
-testing<-subset(studat,case==1)
+student_long$year<-as.numeric(student_long$year)
+student_long$proflvl<-as.numeric(student_long$proflvl)
+testset<-sample(unique(student_long$stuid),185000)
+student_long$case<-0
+student_long$case[student_long$stuid %in% testset]<-1
+training<-subset(student_long,case==0)
+testing<-subset(student_long,case==1)
 
 
 training<-training[,c(3,6:16,21,22,28,29,30)]
 
-
 trainX<-training[,1:15]
-
-ctrl <- trainControl(method = "repeatedcv", repeats = 5,
+ctrl <- trainControl(method = "repeatedcv", number=10,repeats=3,
                      summaryFunction = defaultSummary)
-
+grid<-expand.grid(.interaction.depth=seq(1,7,by=2),
+                  .n.trees=seq(100,1000,by=50),
+                  .shrinkage=c(0.01,0.1))
 gbmTune<-train(x=trainX,
                y=training$mathSS,
                method="gbm",
-               tuneLength=9,
                metric="RMSE",
-               trControl=ctrl)
+               trControl=ctrl,
+               tuneGrid=grid,
+               verbose=FALSE)
+gbmPred<-predict(gbmTune,testing[,names(trainX)])
+
+# svmTune<-train(x=trainX,
+#                y=training$mathSS,
+#                method="svmLinear",
+#                tuneLength=3,
+#                metric="RMSE",
+#                trControl=ctrl)
 
 ```
 - R has best in class machine learning algorithms used to classify data and predict
@@ -296,6 +311,25 @@ gbmTune<-train(x=trainX,
 - Python is good too
 
 
+# Plot
+```{r modeldiag1,cache=TRUE}
+qplot(testing$mathSS,gbmPred,geom='hex',binwidth=c(10,10))+geom_smooth()+theme_dpi()
+```
+
+# Plot 2
+```{r modeldiag2,cache=TRUE}
+qplot(testing$mathSS,testing$mathSS-gbmPred,geom='hex',binwidth=c(10,10))+geom_smooth()+theme_dpi()
+```
+
+# Plot 3
+
+```{r modeldiag3,cache=TRUE}
+qplot(testing$mathSS-gbmPred,binwidth=7)+theme_dpi()+xlim(c(-60,60))
+```
  
- 
- 
+# Plot 4
+
+```{r modeldiag4,cache=TRUE}
+plot(gbmTune)
+```
+
