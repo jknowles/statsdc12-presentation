@@ -281,33 +281,31 @@ head(stuatt, 4)
 # Do analytics on fixed data
 
 
+
+
+
 ```r
-library(caret)
-# Parallel on Windows
-library(snow)
-library(doSNOW)
-cl <- makeCluster(c("localhost", "localhost", "localhost", "localhost"), 
-    type = "SOCK")
-registerDoSNOW(cl)
-#
-library(gbm)
-require(pROC)
+# Setup data
 student_long$year <- as.numeric(student_long$year)
 student_long$proflvl <- as.numeric(student_long$proflvl)
-testset <- sample(unique(student_long$stuid), 185000)
+# Set aside test set
+testset <- sample(unique(student_long$stuid), 190000)
 student_long$case <- 0
 student_long$case[student_long$stuid %in% testset] <- 1
+# Draw a training set of data (random subset of students)
 training <- subset(student_long, case == 0)
 testing <- subset(student_long, case == 1)
 
-
-training <- training[, c(3, 6:16, 21, 22, 28, 29, 30)]
-
+training <- training[, c(3, 6:16, 21, 22, 28, 29, 30)]  # subset vars
 trainX <- training[, 1:15]
-ctrl <- trainControl(method = "repeatedcv", number = 10, repeats = 3, 
+
+# Parameters
+ctrl <- trainControl(method = "repeatedcv", number = 15, repeats = 5, 
     summaryFunction = defaultSummary)
-grid <- expand.grid(.interaction.depth = seq(1, 7, by = 2), .n.trees = seq(100, 
-    1000, by = 50), .shrinkage = c(0.01, 0.1))
+# Search grid
+grid <- expand.grid(.interaction.depth = seq(2, 6, by = 1), .n.trees = seq(200, 
+    800, by = 50), .shrinkage = c(0.01, 0.1))
+# Boosted tree search
 gbmTune <- train(x = trainX, y = training$mathSS, method = "gbm", 
     metric = "RMSE", trControl = ctrl, tuneGrid = grid, verbose = FALSE)
 gbmPred <- predict(gbmTune, testing[, names(trainX)])
@@ -318,12 +316,15 @@ gbmPred <- predict(gbmTune, testing[, names(trainX)])
 
 
 
+
+# Why?
 - R has best in class machine learning algorithms used to classify data and predict
 - R is the tool of choice for data science algorithms
 - Python is good too
 
 
 # Plot
+
 
 
 ```r
@@ -335,6 +336,7 @@ qplot(testing$mathSS, gbmPred, geom = "hex", binwidth = c(10, 10)) +
 
 
 # Plot 2
+
 
 
 ```r
@@ -368,3 +370,8 @@ plot(gbmTune)
 ![plot of chunk modeldiag4](figure/modeldiag4.svg) 
 
 
+# Eratta
+<p align="center"><img src="figure/modeldiag1.svg"" height="500" width="800"></p>
+<p align="center"><img src="figure/modeldiag2.svg"" height="500" width="800"></p>
+<p align="center"><img src="figure/modeldiag3.svg"" height="500" width="800"></p>
+<p align="center"><img src="figure/modeldiag4.svg"" height="700" width="800"></p>
