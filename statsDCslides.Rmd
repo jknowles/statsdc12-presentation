@@ -1,7 +1,6 @@
 % Using R and Longitudinal Data System Records to Answer Policy Questions
 % Jared Knowles
 
-
 # Overview
 - Why R?
 - Examples of R Analyses?
@@ -17,6 +16,12 @@ opts_chunk$set(warning=FALSE,error=FALSE,message=FALSE,size='footnotesize',dev='
 - R is open source
 - R is **best in class** and state of the art
 - R is free
+
+# R works for government
+- R is transparent
+- R is reproducible
+- R is accurate
+- R works! Today!
 
 # R
 <p align="center"><img src="http://dl.dropbox.com/u/1811289/workspacescreen.png" height="700" width="800"></p>
@@ -47,8 +52,8 @@ Read in Data
 
 ```{r readdata,results='markup',cache=TRUE}
 studat<-read.csv('data/smalldata.csv')
-str(studat[5:18,])
-source('data/simulate_data.R')
+str(studat[,24:32])
+#source('data/simulate_data.R')
 ```
 
 # Simple Diagnostics
@@ -70,7 +75,18 @@ qplot(grade,readSS,data=plotsub)+facet_wrap(~stuid,nrow=4,ncol=6)+theme_dpi()+ge
 # More Advanced 
 <p align="center"><img src="http://dl.dropbox.com/u/1811289/TESTstuplot.gif" height="800" width="900"></p>
 
-# What we do?
+# Can this generate information?
+- Graphics help explain, but are still descriptive
+- R can help on two fronts:
+  1. R can do advanced analytics that provide insight
+  2. R can graphically depict those analytics in simple ways that are intuitive to policy makers
+- Oh yeah...? Prove it.
+  1. BLBC study in Wisconsin
+  2. Regression Trees
+  3. Machine Learning Algorithms
+
+
+# BLBC in Wisconsin
 - We fit statistical models to all the students in Wisconsin modeling their future test score as best as possible through each strategy described above
 - We also include an indicator of whether the student was eligible for BLBC instruction or not
 - We compare to see if the average student receiving BLBC did better than the average student receiving other ESL services, all else equal
@@ -145,14 +161,11 @@ coefplot1+theme_dpi()+scale_linetype_discrete(name="Model \n Specification")
 - More precision is needed
 
 # Conclusions and Next Steps
-**Conclusions**
-
 - In Wisconsin BLBC does not have the **negative** effects found in recent research on California, though a slight negative effect may exist in some cases
 - Unlike other states where BLBC has been studied, Wisconsin has substantially different results between language groups on mathematics and possibly on English proficiency achievement
 - There is still a lot of imprecision in the estimates used here and more precision would be helpful, but effects are not substantively large in terms of relative student performance, even in the upper and lower bounds
 
-**Next Steps**
-
+# Next Steps
 - Get more data over more years and use a more precise estimation technique to reduce uncertainty about effects
 - Explore the *variation* across BLBC programs in addition to the mean effect
 - Learn more about the non-cognitive non-academic outcomes for BLBC in order to understand the costs and benefits of BLBC programs more fully
@@ -162,7 +175,7 @@ coefplot1+theme_dpi()+scale_linetype_discrete(name="Model \n Specification")
 
 # Inference Trees
 Outline of the conditional inference tree structure. 
-```{r parttree,dev='svg',fig.width=10.25,fig.height=7.5}
+```{r parttree,dev='svg',fig.width=11,fig.height=7.1}
 library(partykit)
 mypar<-ctree_control(testtype='Bonferroni',mincriterion=0.99)
 mytree<-ctree(mathSS~race+econ+ell+disab+sch_fay+dist_fay+attday+readSS,
@@ -227,7 +240,7 @@ names(student_long)
 <p align="center"><img src="data/sdp.gif" height="112" width="329"></p>
 
 # Can do more
-- Consider this example data:
+- Consider this example data from the Strategic Data Projct Toolkit:
 ```{r dirtydata, echo=FALSE}
 library(foreign)
 stuatt<-read.dta('data/Student_Attributes.dta')
@@ -259,10 +272,68 @@ stuatt$race2<-stuatt$race_ethnicity
 stuatt$race2[[1]]<-"H"
 head(stuatt,4)
 ```
-- We can do the modal category easily in R
+- We can do the modal category easily in R using a simple function:
+
+```{r statmodefunc}
+statamode <- function(x) {
+  z <- table(as.vector(x))
+  m<-names(z)[z == max(z)]
+  if(length(m)==1){
+    return(m)
+  }
+  return(".")
+}
+```
+
+# Fixing data in a few simple steps
+```{r fixdata}
+require(plyr)
+modes<-ddply(stuatt,.(sid),summarize,
+             race_temp=statamode(race_ethnicity),
+             nvals=length(unique(race_ethnicity)),
+             most_recent_year=max(school_year),
+             most_recent_race=tail(race_ethnicity,1))
+
+modes$race2[modes$race_temp!="."]<-modes$race_temp[modes$race_temp!="."]
+
+modes$race2[modes$race_temp=="."]<-as.character(
+  modes$most_recent_race[modes$race_temp=="."])
+
+stuatt2<-merge(stuatt,modes)
+stuatt2$race_ethnicity<-stuatt2$race2
+stuatt2<-subset(stuatt2,select=c('sid','school_year','race_ethnicity'))
+```
+
+# Results
+
+```{r busrulesresults}
+head(stuatt)
+head(stuatt2)
+```
+
+# What happened?
+- We implemented two business rules on over 59,000 observations in a few seconds on a few lines of code
+  - First, the modal race is chosen for multiple race categories per student
+  - If a tie exists (more than 1 mode), we map the most recent race
+- These business rules can be readily changed, i.e. we could use the first race or a multi-race code for students with multiple modes
+- This script can be run every time data is extracted from the warehouse to do work on 
+- It can be run by every analyst on every machine because R is free and easy to deploy! Consistency and repeatability.
+
+# Next Steps
+- Once we clean up the data, analytics can be shared
+- Doing analytics is a simple next step in R
+- R has best in class machine learning algorithms used to classify data and predict
+- R is the tool of choice for data science algorithms
+
+
+# A Data Mining Example
+- If we are interested in pure predictive analytics, R provides hundreds of best in class algorithms and methods to evaluate them
+- This is done primarily through the `caret` package, which provides an easy to use framework for comparing these algorithms
+- These models can be used to predict "classes" of students, predict student scores, or predict anything else of interest
+
 
 # Do analytics on fixed data
-```{r analyticssetup,results='hide',echo=FALSE}
+```{r analyticssetup,results='hide',echo=FALSE,eval=FALSE}
 library(caret)
 # Parallel on Windows
 library(snow)
@@ -271,12 +342,12 @@ cl<-makeCluster(c("localhost","localhost","localhost","localhost"),type="SOCK")
 registerDoSNOW(cl)
 library(gbm)
 require(pROC)
-```
-
-```{r analytics,cache=TRUE,eval=TRUE,echo=TRUE}
 # Setup data
 student_long$year<-as.numeric(student_long$year)
 student_long$proflvl<-as.numeric(student_long$proflvl)
+```
+
+```{r analytics,cache=TRUE,eval=FALSE,echo=TRUE}
 # Set aside test set
 testset<-sample(unique(student_long$stuid),190000)
 student_long$case<-0
@@ -314,38 +385,78 @@ gbmPred<-predict(gbmTune,testing[,names(trainX)])
 
 ```
 
-# Why?
-- R has best in class machine learning algorithms used to classify data and predict
-- R is the tool of choice for data science algorithms
-- Python is good too
-
-
-# Plot
-
-```{r modeldiag1}
-qplot(testing$mathSS,gbmPred,geom='hex',binwidth=c(10,10))+geom_smooth()+theme_dpi()
-```
-
-# Plot 2
-
-```{r modeldiag2}
-qplot(testing$mathSS,testing$mathSS-gbmPred,geom='hex',binwidth=c(10,10))+geom_smooth()+theme_dpi()
-```
-
-# Plot 3
-
-```{r modeldiag3}
-qplot(testing$mathSS-gbmPred,binwidth=7)+theme_dpi()+xlim(c(-60,60))
-```
- 
-# Plot 4
+# Machine Learning
 
 ```{r modeldiag4,fig.width=7,fig.height=6}
-plot(gbmTune)
+#plot(gbmTune)
+```
+<p align="center"><img src="figure/modeldiag4.svg"" height="700" width="800"></p>
+
+# Predictions
+
+<p align="center"><img src="figure/modeldiag1.svg"" height="500" width="800"></p>
+
+```{r modeldiag1}
+# qplot(testing$mathSS,gbmPred,geom='hex',binwidth=c(10,10))+geom_smooth()+theme_dpi()
 ```
 
-# Eratta
-<p align="center"><img src="figure/modeldiag1.svg"" height="500" width="800"></p>
+# Deviance
+
+```{r modeldiag2}
+# qplot(testing$mathSS,testing$mathSS-gbmPred,geom='hex',binwidth=c(10,10))+
+#geom_smooth()+theme_dpi()
+```
 <p align="center"><img src="figure/modeldiag2.svg"" height="500" width="800"></p>
+
+
+# Deviance (II)
+
+```{r modeldiag3}
+#qplot(testing$mathSS-gbmPred,binwidth=7)+theme_dpi()+xlim(c(-60,60))
+```
 <p align="center"><img src="figure/modeldiag3.svg"" height="500" width="800"></p>
-<p align="center"><img src="figure/modeldiag4.svg"" height="700" width="800"></p>
+
+# The best part
+- R is a programming language and can be used to produce reports
+- R can produce HTML, PDF, or other formats of reports
+- Examples:
+  - Dropout risk reports for each high school
+  - NSC reports by school district
+- R can do this by simply building a template and running analytics on the appropriate data subset, automatically
+
+
+# How to learn?
+- Online with tutorials
+- DPI R Bootcamp in August
+- PD workshops elsewhere
+
+# Online Tutorials
+- [R Features List](http://www.revolutionanalytics.com/what-is-open-source-r/r-language-features/)
+- [Video Tutorials](http://www.twotorials.com/)
+- [R Tutorials from Around the World](http://pairach.com/2012/02/26/r-tutorials-from-universities-around-the-world/)
+- [R for SPSS/SAS Users](http://r4stats.com/add-ons)
+
+# DPI R Bootcamp
+- DPI is offering a bootcamp on R August 2nd and 3rd. 
+- Slots are limited for this two full days of R training.
+- Training materials will be made available online. As they are developed, they can be [viewed at https://github.com/jknowles/r_tutorial_ed.](https://github.com/jknowles/r_tutorial_ed) 
+- For more information, visit the [website https://sites.google.com/a/dpi.wi.gov/rbootcamp/.](https://sites.google.com/a/dpi.wi.gov/rbootcamp/)
+
+# Questions
+- This presentation will be available online at [www.jaredknowles.com](www.jaredknowles.com) tomorow. It is on GitHub (along with all the data and code) at (www.github.com/jknowles/statsdc12-presentation)[www.github.com/jknowles/statsdc12-presentation] 
+- You can get the links and more information there
+- Feel free to contact me
+  - E-mail: jared.knowles@dpi.wi.gov
+  - Twitter: @jknowles
+  - Website: www.jaredknowles.com
+  - Github: jknowles
+
+# Session Info
+- Questions?
+
+This document is produced with **knitr** version `r packageVersion('knitr')`. Here is my session info:
+
+```{r session-info}
+print(sessionInfo(), locale=FALSE)
+```
+
