@@ -23,7 +23,7 @@
 - R works! Today!
 
 # R
-<p align="center"><img src="http://dl.dropbox.com/u/1811289/workspacescreen.png" height="700" width="800"></p>
+<p align="center"><img src="http://dl.dropbox.com/u/1811289/workspacescreen.png" height="600" width="800"></p>
 
 # Google Scholar Hits
 R has recently passed Stata on Google Scholar hits and it is catching up to the two major players SPSS and SAS
@@ -33,7 +33,7 @@ R has recently passed Stata on Google Scholar hits and it is catching up to the 
 # R Has an Active Web Presence
 R is linked to from more and more sites 
 
-<p align="center"><img src="http://dl.dropbox.com/u/1811289/sitelinks.png" height="650" width="800"></p>
+<p align="center"><img src="http://dl.dropbox.com/u/1811289/sitelinks.png" height="600" width="800"></p>
 
 # R Extensions
 These links come from the explosion of add-on packages to R
@@ -105,7 +105,7 @@ qplot(grade, readSS, data = plotsub) + facet_wrap(~stuid, nrow = 4,
 
 
 # More Advanced 
-<p align="center"><img src="http://dl.dropbox.com/u/1811289/TESTstuplot.gif" height="800" width="900"></p>
+<p align="center"><img src="http://dl.dropbox.com/u/1811289/TESTstuplot.gif" height="700" width="800"></p>
 
 # Can this generate information?
 - Graphics help explain, but are still descriptive
@@ -119,8 +119,8 @@ qplot(grade, readSS, data = plotsub) + facet_wrap(~stuid, nrow = 4,
 
 
 # BLBC in Wisconsin
-- We fit statistical models to all the students in Wisconsin modeling their future test score as best as possible through each strategy described above
-- We also include an indicator of whether the student was eligible for BLBC instruction or not
+- We fit statistical models to all the ESL students in Wisconsin modeling their future test score as best as possible through each strategy described above (on all three major assessments)
+- We also include an indicator of whether the student was **eligible** for BLBC instruction or not
 - We compare to see if the average student receiving BLBC did better than the average student receiving other ESL services, all else equal
 - We report the range of uncertainty around this difference between student groups and compare them to see if any meaningful differences emerge
 - Due to our large sample size we expect our results to be biased in favor of finding statistically significant results, so we also examine the magnitude of findings to see if they are **substantively significant**; i.e. is the difference big enough to matter in the lives of students?
@@ -129,14 +129,16 @@ qplot(grade, readSS, data = plotsub) + facet_wrap(~stuid, nrow = 4,
 # Evaluations of Policy 
 - Results are presented in effect sizes, or standard deviation units of change in test scores.
 - **0.1** is small, 0.2 to 0.4 is reasonable and is about a *year* of education in most cases. Bigger than 0.4 is huge.
-![plot of chunk modelspec](figure/modelspec.svg) 
 
+# Results I
 - The bars represent the 95% confidence interval around the estimate. The VAM model is consistently statistically significant, not overlapping 0, and negative.
 - The length of the bars represent the uncertainty about the estimate.
 - But the mean effect size is quite small, less than 0.1 standard deviations in most cases. 
 - This represents a year-to-year change in a student's score between BLBC and non-BLBC instruction.
+![plot of chunk modelspec](figure/modelspec.svg) 
 
-# Results
+
+# Results II
 - Language is different. Wisconsin has a large sample of both Hmong and Spanish speakers and they have different results when analyzed separately
 ![plot of chunk modelbracketlang](figure/modelbracketlang.svg) 
 
@@ -152,14 +154,21 @@ qplot(grade, readSS, data = plotsub) + facet_wrap(~stuid, nrow = 4,
 
 # Next Steps
 - Get more data over more years and use a more precise estimation technique to reduce uncertainty about effects
-- Explore the *variation* across BLBC programs in addition to the mean effect
+- Explore the **variation** across BLBC programs in addition to the mean effect
 - Learn more about the non-cognitive non-academic outcomes for BLBC in order to understand the costs and benefits of BLBC programs more fully
 - Estimate a "treatement-on-the-treated"" parameter to more directly compare to prior research
 - Survey teachers and merge teacher/program practice data with student outcomes to begin exploring the effective components of BLBC and ESL programs
 
 
 # Inference Trees
-Outline of the conditional inference tree structure. 
+- Inference trees allow for ranking and ordering of effects by magnitude
+- Bin students into groups of attributes and deviation in outcome measure from other students with other attribute groups
+- Very useful for policy making and program targeting
+- Incredibly easy to implement in R and to visually depict / make actionable
+- Can simply display very complex interactions between demographic attributes and test outcomes
+- Let's look at an example on simulated student test score data
+
+# Inference Tree Example
 
 
 ```r
@@ -176,13 +185,17 @@ plot(mytree)
 
 
 
-# Can Standardize and Share / Compare Results
+# R is a powerful platform
+
+**Can Standardize and Share / Compare Results**
+
 - Execute the same code on each other's data
 - Compare results
 - Compare methods of analysis and improve them
 - Build a professional community 
+- Collaborate
 
-# Code collaboration
+# Code collaboration example
 - There are a number of very common data tasks to help do policy research that can be shared 
   - Clean data
   - Combine datasets and match data
@@ -198,7 +211,7 @@ plot(mytree)
 - Can be found [online at GitHub](https://github.com/jknowles/SDP-Toolkit-for-R)
 <p align="center"><img src="data/sdp.gif" height="112" width="329"></p>
 
-# Can do more
+# Race/Ethnicity Example
 - Consider this example data from the Strategic Data Projct Toolkit:
 
 
@@ -349,13 +362,14 @@ head(stuatt2)
 - These business rules can be readily changed, i.e. we could use the first race or a multi-race code for students with multiple modes
 - This script can be run every time data is extracted from the warehouse to do work on 
 - It can be run by every analyst on every machine because R is free and easy to deploy! Consistency and repeatability.
+- It can be swapped out with a different business rule implemented just as easily for different purposes **flexibility**
+- It can be mapped and translated onto CEDS elements
 
 # Next Steps
 - Once we clean up the data, analytics can be shared
 - Doing analytics is a simple next step in R
 - R has best in class machine learning algorithms used to classify data and predict
 - R is the tool of choice for data science algorithms
-
 
 # A Data Mining Example
 - If we are interested in pure predictive analytics, R provides hundreds of best in class algorithms and methods to evaluate them
@@ -453,10 +467,11 @@ gbmPred <- predict(gbmTune, testing[, names(trainX)])
 - R is a programming language and can be used to produce reports
 - R can produce HTML, PDF, or other formats of reports
 - Examples:
-  - Dropout risk reports for each high school
-  - NSC reports by school district
+  * Dropout risk reports for each high school
+  * NSC reports by school district
 - R can do this by simply building a template and running analytics on the appropriate data subset, automatically
-
+  * R can even e-mail reports, seriously
+- Your data analysts have access to a full programming language once they understand R, flexibility far above and beyond other analytics packages for a slightly steeper learning curve
 
 # How to learn?
 - Online with tutorials
@@ -464,6 +479,7 @@ gbmPred <- predict(gbmTune, testing[, names(trainX)])
 - PD workshops elsewhere
 
 # Online Tutorials
+- Visit this presenation online and look at these great resources for learning that are free and open source as well
 - [R Features List](http://www.revolutionanalytics.com/what-is-open-source-r/r-language-features/)
 - [Video Tutorials](http://www.twotorials.com/)
 - [R Tutorials from Around the World](http://pairach.com/2012/02/26/r-tutorials-from-universities-around-the-world/)
@@ -474,15 +490,23 @@ gbmPred <- predict(gbmTune, testing[, names(trainX)])
 - Slots are limited for this two full days of R training.
 - Training materials will be made available online. As they are developed, they can be [viewed at https://github.com/jknowles/r_tutorial_ed.](https://github.com/jknowles/r_tutorial_ed) 
 - For more information, visit the [website https://sites.google.com/a/dpi.wi.gov/rbootcamp/.](https://sites.google.com/a/dpi.wi.gov/rbootcamp/)
+  * We will probably do another bootcamp soon, a few slots still available for this bootcamp. Interested? See me.
 
 # Questions
-- This presentation will be available online at [www.jaredknowles.com](www.jaredknowles.com) tomorow. It is on GitHub (along with all the data and code) at (www.github.com/jknowles/statsdc12-presentation)[www.github.com/jknowles/statsdc12-presentation] 
+- This presentation will be available online at [www.jaredknowles.com](www.jaredknowles.com) tomorow. It is on GitHub (along with all the data and code to recreate all the charts and graphs) at [www.github.com/jknowles/statsdc12-presentation](www.github.com/jknowles/statsdc12-presentation)
 - You can get the links and more information there
 - Feel free to contact me
   - E-mail: jared.knowles@dpi.wi.gov
   - Twitter: @jknowles
   - Website: www.jaredknowles.com
   - Github: jknowles
+
+# Discussion
+- There will be a lunch session about the broader topic of how to build an analytics workflow into your SEA/LEA that leverages various strategies to get more out of your data
+  - Tomorrow, at lunch time, room TBA. R
+- R is part of this package potentially, but not the sole solution, and a broader set of policy issues is required to be discussed
+- Questions? Thoughts? Issues? Worries? Complaints?
+  * And yes, useRs are very passionate about the tool :-)
 
 # Session Info
 - Questions?
